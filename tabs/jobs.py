@@ -4,7 +4,7 @@ import requests
 
 from config import BASE_API_URL
 from objects import Account, Job
-from windows.create_job import CreateJobWindow
+from windows.create_edit_job import CreateEditJobWindow
 
 
 class JobsTab(tk.Frame):
@@ -123,10 +123,10 @@ class JobsTab(tk.Frame):
             ).pack(side="left", padx=5)
 
     def create_job(self):
-        CreateJobWindow(self, self.cookies, self.refresh_jobs)
+        CreateEditJobWindow(self, self.cookies, self.refresh_jobs)
 
     def edit_job(self, job: Job):
-        print(f"Edit job {job.job_id} clicked.")
+        CreateEditJobWindow(self, self.cookies, self.refresh_jobs, job=job)
 
     def delete_job(self, job: Job):
         try:
