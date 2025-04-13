@@ -30,6 +30,23 @@ class JobsTab(tk.Frame):
                 relief="raised",
             ).pack(anchor="w")
 
+        # filter
+        filter_frame = tk.Frame(self, bg="#f5f5f5")
+        filter_frame.pack(fill="x", padx=10, pady=(10, 0))
+
+        tk.Label(filter_frame, text="Min Salary:", bg="#f5f5f5").pack(side="left")
+        self.min_salary_entry = tk.Entry(filter_frame, width=10)
+        self.min_salary_entry.pack(side="left", padx=(0, 10))
+
+        tk.Label(filter_frame, text="Max Salary:", bg="#f5f5f5").pack(side="left")
+        self.max_salary_entry = tk.Entry(filter_frame, width=10)
+        self.max_salary_entry.pack(side="left", padx=(0, 10))
+
+        tk.Button(filter_frame, text="Apply Filter", command=self.refresh_jobs).pack(
+            side="left"
+        )
+
+        # scrollable frame
         canvas_container = tk.Frame(self)
         canvas_container.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -67,6 +84,25 @@ class JobsTab(tk.Frame):
             )
             if res.status_code == 200:
                 job_list = res.json()
+
+                # filter
+                min_salary = self.min_salary_entry.get()
+                max_salary = self.max_salary_entry.get()
+
+                if min_salary:
+                    try:
+                        min_salary = float(min_salary)
+                        job_list = [j for j in job_list if j["salary"] >= min_salary]
+                    except ValueError:
+                        pass
+
+                if max_salary:
+                    try:
+                        max_salary = float(max_salary)
+                        job_list = [j for j in job_list if j["salary"] <= max_salary]
+                    except ValueError:
+                        pass
+
                 for job_data in job_list:
                     job = Job(**job_data)
                     self.add_job_widget(job)
