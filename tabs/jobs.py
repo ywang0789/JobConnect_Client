@@ -5,6 +5,7 @@ import requests
 from config import BASE_API_URL
 from objects import Account, Job
 from windows.create_edit_job import CreateEditJobWindow
+from windows.job_applications import JobApplicationsWindow
 
 
 class JobsTab(tk.Frame):
@@ -144,10 +145,17 @@ class JobsTab(tk.Frame):
             bg="white",
         ).pack(anchor="w", pady=(5, 0))
 
-        if self.user_account.role == "recruiter":
-            btn_frame = tk.Frame(frame, bg="white")
-            btn_frame.pack(anchor="e", pady=(10, 0))
+        btn_frame = tk.Frame(frame, bg="white")
+        btn_frame.pack(anchor="e", pady=(10, 0))
 
+        tk.Button(
+            btn_frame,
+            text="Open",
+            command=lambda j=job: self.open_job_applications(j),
+            width=10,
+        ).pack(side="left", padx=5)
+
+        if self.user_account.role == "recruiter":
             tk.Button(
                 btn_frame, text="Edit", command=lambda j=job: self.edit_job(j), width=10
             ).pack(side="left", padx=5)
@@ -157,6 +165,9 @@ class JobsTab(tk.Frame):
                 command=lambda j=job: self.delete_job(j),
                 width=10,
             ).pack(side="left", padx=5)
+
+    def open_job_applications(self, job: Job):
+        JobApplicationsWindow(self, self.cookies, self.user_account, job)
 
     def create_job(self):
         CreateEditJobWindow(self, self.cookies, self.refresh_jobs)
@@ -178,7 +189,4 @@ class JobsTab(tk.Frame):
             tk.messagebox.showerror("Error", str(e))
 
     def _on_mousewheel(self, event):
-        """
-        scrolls the canvas when the mouse wheel is used.
-        """
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")

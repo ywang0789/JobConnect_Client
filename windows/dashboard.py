@@ -3,7 +3,6 @@ from tkinter import ttk
 
 from objects import Account
 from tabs.account import AccountTab
-from tabs.applications import ApplicationsTab
 from tabs.jobs import JobsTab
 
 
@@ -22,4 +21,3 @@ class MainDashboardWindow(tk.Tk):
             AccountTab(notebook, self.cookies, self.user_account), text="Account"
         )
         notebook.add(JobsTab(notebook, self.cookies, self.user_account), text="Jobs")
-        notebook.add(ApplicationsTab(notebook), text="Applications")
