@@ -4,6 +4,7 @@ import requests
 
 from config import BASE_API_URL
 from objects import Account, Job
+from windows.create_job import CreateJobWindow
 
 
 class JobsTab(tk.Frame):
@@ -13,7 +14,7 @@ class JobsTab(tk.Frame):
         self.user_account = user_account
         self.cookies = cookies
 
-        # Optional: Recruiter-only "Create Job" button
+        # Recruiter-only "Create Job" button
         if self.user_account.role == "recruiter":
             tk.Button(self, text="Create New Job", command=self.create_job).pack(
                 pady=(10, 0), anchor="e", padx=10
@@ -65,7 +66,7 @@ class JobsTab(tk.Frame):
             ).pack(side="left", padx=5)
 
     def create_job(self):
-        print("Create Job clicked.")
+        CreateJobWindow(self, self.cookies, self.refresh_jobs)
 
     def edit_job(self, job: Job):
         print(f"Edit job {job.job_id} clicked.")
@@ -77,6 +78,7 @@ class JobsTab(tk.Frame):
                 f"{BASE_API_URL}/job/{job.job_id}", cookies=self.cookies, verify=False
             )
             if res.status_code == 204:
+                tk.messagebox.showinfo("Success", "Job deleted successfully.")
                 self.refresh_jobs()
             else:
                 tk.messagebox.showerror("Error", "Failed to delete job.")
