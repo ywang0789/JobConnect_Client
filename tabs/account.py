@@ -21,7 +21,6 @@ class AccountTab(tk.Frame):
         tk.Label(self, text=f"Email: {user_account.email}").pack(pady=2)
         tk.Label(self, text=f"Role: {user_account.role}").pack(pady=2)
 
-        # Buttons
         tk.Button(self, text="Logout", command=self.logout, bg="lightblue").pack(
             pady=10
         )
@@ -41,6 +40,11 @@ class AccountTab(tk.Frame):
             if res.status_code == 200:
                 messagebox.showinfo("Logged Out", "You have been logged out.")
                 self.master.master.destroy()
+
+                # Open the login window again
+                from windows.login import LoginWindow
+
+                LoginWindow().mainloop()
             else:
                 messagebox.showerror("Error", "Logout failed.")
         except Exception as e:
@@ -59,7 +63,13 @@ class AccountTab(tk.Frame):
             )
             if res.status_code == 200:
                 messagebox.showinfo("Deleted", "Your account has been deleted.")
+
                 self.master.master.destroy()
+
+                # Open the login window again
+                from windows.login import LoginWindow
+
+                LoginWindow().mainloop()
             else:
                 messagebox.showerror("Error", "Account deletion failed.")
         except Exception as e:
