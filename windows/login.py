@@ -17,16 +17,18 @@ class LoginWindow(tk.Tk):
 
         tk.Label(self, text="Email").pack(pady=(20, 5))
         self.email_entry = tk.Entry(self, width=30)
-        self.email_entry.insert(0, "recruiter@test.com")  # Pre-fill for testing
         self.email_entry.pack()
 
         tk.Label(self, text="Password").pack(pady=(20, 5))
         self.password_entry = tk.Entry(self, show="*", width=30)
-        self.password_entry.insert(0, "Recruiter123!")  # Pre-fill for testing
         self.password_entry.pack()
 
         tk.Button(self, text="Login", command=self.login).pack(pady=20)
         tk.Button(self, text="Register", command=self.open_register_window).pack()
+
+        # autofill for testing
+        tk.Button(self, text="Fill Recruiter", command=self.fill_recruiter).pack(pady=5)
+        tk.Button(self, text="Fill Applicant", command=self.fill_applicant).pack(pady=5)
 
     def login(self):
         """uses entry fields to login to the API"""
@@ -68,3 +70,15 @@ class LoginWindow(tk.Tk):
 
     def open_register_window(self):
         RegisterWindow(self)
+
+    def fill_recruiter(self):
+        self.password_entry.delete(0, tk.END)
+        self.password_entry.insert(0, "Recruiter123!")
+        self.email_entry.delete(0, tk.END)
+        self.email_entry.insert(0, "recruiter@test.com")
+
+    def fill_applicant(self):
+        self.password_entry.delete(0, tk.END)
+        self.password_entry.insert(0, "Applicant123!")
+        self.email_entry.delete(0, tk.END)
+        self.email_entry.insert(0, "Applicant@test.com")
