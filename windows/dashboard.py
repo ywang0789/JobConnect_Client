@@ -18,6 +18,8 @@ class MainDashboardWindow(tk.Tk):
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
 
-        notebook.add(AccountTab(notebook), text="Account")
-        notebook.add(JobsTab(notebook), text="Jobs")
+        notebook.add(
+            AccountTab(notebook, self.cookies, self.user_account), text="Account"
+        )
+        notebook.add(JobsTab(notebook, self.cookies, self.user_account), text="Jobs")
         notebook.add(ApplicationsTab(notebook), text="Applications")
