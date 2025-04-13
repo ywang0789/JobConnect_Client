@@ -11,7 +11,7 @@ class MainDashboardWindow(tk.Tk):
     def __init__(self, cookies, user_account: Account):
         super().__init__()
         self.title("JobConnect - Dashboard")
-        self.geometry("600x400")
+        self.geometry("500x500")
         self.cookies = cookies
         self.user_account = user_account
 
