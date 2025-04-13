@@ -1,1 +1,1 @@
-API_BASE = "http://localhost:5251/api"
+BASE_API_URL = "http://localhost:5251/api"

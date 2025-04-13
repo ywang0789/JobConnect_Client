@@ -3,9 +3,10 @@ from tkinter import messagebox
 
 import requests
 
-from config import API_BASE
+from config import BASE_API_URL
 from objects import Account
 from windows.dashboard import MainDashboardWindow
+from windows.register import RegisterWindow
 
 
 class LoginWindow(tk.Tk):
@@ -25,6 +26,7 @@ class LoginWindow(tk.Tk):
         self.password_entry.pack()
 
         tk.Button(self, text="Login", command=self.login).pack(pady=20)
+        tk.Button(self, text="Register", command=self.open_register_window).pack()
 
     def login(self):
         """uses entry fields to login to the API"""
@@ -34,17 +36,17 @@ class LoginWindow(tk.Tk):
 
         try:
             res = requests.post(
-                f"{API_BASE}/account/login",
+                f"{BASE_API_URL}/account/login",
                 json={"email": email, "password": password},
                 verify=False,
             )
             if res.status_code == 200:
                 # get accouint info
                 me = requests.get(
-                    f"{API_BASE}/account/me", cookies=res.cookies, verify=False
+                    f"{BASE_API_URL}/account/me", cookies=res.cookies, verify=False
                 )
                 if me.status_code == 200:
-                    print(me.json())
+                    # print(me.json())
                     user_account = Account(
                         me.json()["id"],
                         me.json()["first_name"],
@@ -53,6 +55,7 @@ class LoginWindow(tk.Tk):
                         me.json()["role"],
                     )
                     self.destroy()
+                    # open dashboard window
                     MainDashboardWindow(res.cookies, user_account).mainloop()
                 else:
                     messagebox.showerror("Error", "Failed to fetch user data.")
@@ -62,3 +65,6 @@ class LoginWindow(tk.Tk):
                 )
         except Exception as e:
             messagebox.showerror("Connection Error", str(e))
+
+    def open_register_window(self):
+        RegisterWindow(self)
