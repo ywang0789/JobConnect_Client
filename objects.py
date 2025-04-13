@@ -8,8 +8,8 @@ class Account:
         Id: str,
         first_name: str,
         last_name: str,
-        role: str,
         email: str,
+        role: str,
     ):
         self.Id = Id
         self.first_name = first_name
