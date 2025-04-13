@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, ttk  # Added ttk for Combobox
+from tkinter import messagebox, ttk
 
 import requests
 
@@ -7,36 +7,73 @@ from config import BASE_API_URL
 
 
 class RegisterWindow(tk.Toplevel):
+    """
+    A popup window that allows users to register a new account.
+    Includes input fields for name, email, password, and role selection.
+    """
+
     def __init__(self, master):
+        """
+        registration form and attach to the given master window.
+        """
         super().__init__(master)
         self.title("Register Account")
-        self.geometry("300x500")
+        self.geometry("360x500")
+        self.configure(bg="#f9f9f9")
 
-        # Form fields
-        tk.Label(self, text="First Name").pack(pady=(20, 5))
-        self.first_name_entry = tk.Entry(self, width=30)
-        self.first_name_entry.pack()
+        tk.Label(
+            self, text="Create a New Account", font=("Arial", 16, "bold"), bg="#f9f9f9"
+        ).pack(pady=(30, 10))
 
-        tk.Label(self, text="Last Name").pack(pady=(20, 5))
-        self.last_name_entry = tk.Entry(self, width=30)
-        self.last_name_entry.pack()
+        form_frame = tk.Frame(self, bg="#f9f9f9")
+        form_frame.pack(pady=10)
 
-        tk.Label(self, text="Email").pack(pady=(20, 5))
-        self.email_entry = tk.Entry(self, width=30)
-        self.email_entry.pack()
+        tk.Label(form_frame, text="First Name", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.first_name_entry = tk.Entry(form_frame, width=35)
+        self.first_name_entry.pack(padx=20, pady=(0, 10))
 
-        tk.Label(self, text="Password").pack(pady=(20, 5))
-        self.password_entry = tk.Entry(self, show="*", width=30)
-        self.password_entry.pack()
+        tk.Label(form_frame, text="Last Name", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.last_name_entry = tk.Entry(form_frame, width=35)
+        self.last_name_entry.pack(padx=20, pady=(0, 10))
 
-        tk.Label(self, text="Role").pack(pady=(20, 5))
-        self.role_combobox = ttk.Combobox(self, values=["recruiter", "applicant"])
+        tk.Label(form_frame, text="Email", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.email_entry = tk.Entry(form_frame, width=35)
+        self.email_entry.pack(padx=20, pady=(0, 10))
+
+        tk.Label(form_frame, text="Password", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.password_entry = tk.Entry(form_frame, show="*", width=35)
+        self.password_entry.pack(padx=20, pady=(0, 10))
+
+        tk.Label(form_frame, text="Role", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.role_combobox = ttk.Combobox(
+            form_frame, values=["recruiter", "applicant"], width=32
+        )
         self.role_combobox.set("applicant")
-        self.role_combobox.pack()
+        self.role_combobox.pack(padx=20, pady=(0, 20))
 
-        tk.Button(self, text="Register", command=self.register).pack(pady=20)
+        tk.Button(
+            self,
+            text="Register",
+            command=self.register,
+            width=20,
+            bg="#007acc",
+            fg="white",
+        ).pack(pady=20)
 
     def register(self):
+        """
+        Collect form input and send a registration request to the API.
+        """
         data = {
             "FirstName": self.first_name_entry.get(),
             "LastName": self.last_name_entry.get(),
@@ -44,8 +81,6 @@ class RegisterWindow(tk.Toplevel):
             "Password": self.password_entry.get(),
             "Role": self.role_combobox.get(),
         }
-
-        # print(data)
 
         if not all(data.values()):
             messagebox.showerror("Missing Info", "Please fill in all fields.")

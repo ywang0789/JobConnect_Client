@@ -9,14 +9,24 @@ from windows.job_applications import JobApplicationsWindow
 
 
 class JobsTab(tk.Frame):
+    """
+    Tab for browsing, filtering, and managing jobs.
+    job creation, editing, and deletion for recruiters.
+    """
+
     def __init__(self, master, cookies, user_account: Account):
+        """
+        :param master: Parent widget (the notebook)
+        :param cookies: Authenticated session cookies
+        :param user_account: Logged-in user information
+        """
         super().__init__(master, bg="#f5f5f5")
-        self.master = master
         self.user_account = user_account
         self.cookies = cookies
 
+        # Header with optional create button
         header = tk.Frame(self, bg="#f5f5f5")
-        header.pack(fill="x", pady=(10, 0), padx=10)
+        header.pack(fill="x", pady=(15, 5), padx=10)
 
         if self.user_account.role == "recruiter":
             tk.Button(
@@ -31,23 +41,25 @@ class JobsTab(tk.Frame):
                 relief="raised",
             ).pack(anchor="w")
 
-        # filter
-        filter_frame = tk.Frame(self, bg="#f5f5f5")
+        # Filters
+        filter_frame = tk.LabelFrame(
+            self, text="Filter by Salary", bg="#f5f5f5", padx=10, pady=5
+        )
         filter_frame.pack(fill="x", padx=10, pady=(10, 0))
 
-        tk.Label(filter_frame, text="Min Salary:", bg="#f5f5f5").pack(side="left")
+        tk.Label(filter_frame, text="Min:", bg="#f5f5f5").pack(side="left")
         self.min_salary_entry = tk.Entry(filter_frame, width=10)
         self.min_salary_entry.pack(side="left", padx=(0, 10))
 
-        tk.Label(filter_frame, text="Max Salary:", bg="#f5f5f5").pack(side="left")
+        tk.Label(filter_frame, text="Max:", bg="#f5f5f5").pack(side="left")
         self.max_salary_entry = tk.Entry(filter_frame, width=10)
         self.max_salary_entry.pack(side="left", padx=(0, 10))
 
-        tk.Button(filter_frame, text="Apply Filter", command=self.refresh_jobs).pack(
-            side="left"
-        )
+        tk.Button(
+            filter_frame, text="Apply Filter", command=self.refresh_jobs, width=15
+        ).pack(side="left")
 
-        # scrollable frame
+        # Scrollable frame for job cards
         canvas_container = tk.Frame(self)
         canvas_container.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -70,12 +82,14 @@ class JobsTab(tk.Frame):
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
 
-        # scrolling
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 
         self.refresh_jobs()
 
     def refresh_jobs(self):
+        """
+        Load and filter jobs from the API, then render them.
+        """
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
@@ -86,7 +100,7 @@ class JobsTab(tk.Frame):
             if res.status_code == 200:
                 job_list = res.json()
 
-                # filter
+                # Filter by salary
                 min_salary = self.min_salary_entry.get()
                 max_salary = self.max_salary_entry.get()
 
@@ -117,6 +131,10 @@ class JobsTab(tk.Frame):
             )
 
     def add_job_widget(self, job: Job):
+        """
+        Render a single job listing
+        :param job: The job object to display
+        """
         frame = tk.Frame(
             self.scrollable_frame,
             relief="ridge",
@@ -157,28 +175,56 @@ class JobsTab(tk.Frame):
 
         if self.user_account.role == "recruiter":
             tk.Button(
-                btn_frame, text="Edit", command=lambda j=job: self.edit_job(j), width=10
+                btn_frame,
+                text="Edit",
+                command=lambda j=job: self.edit_job(j),
+                width=10,
+                bg="#f57c00",
+                fg="white",
             ).pack(side="left", padx=5)
+
             tk.Button(
                 btn_frame,
                 text="Delete",
                 command=lambda j=job: self.delete_job(j),
                 width=10,
+                bg="#c62828",
+                fg="white",
             ).pack(side="left", padx=5)
 
     def open_job_applications(self, job: Job):
+        """
+        Open the applications window for a specific job.
+        """
         JobApplicationsWindow(self, self.cookies, self.user_account, job)
 
     def create_job(self):
+        """
+        Open the create job form window.
+        """
         CreateEditJobWindow(self, self.cookies, self.refresh_jobs)
 
     def edit_job(self, job: Job):
+        """
+        Open the edit job form window for the selected job.
+        """
         CreateEditJobWindow(self, self.cookies, self.refresh_jobs, job=job)
 
     def delete_job(self, job: Job):
+        """
+        Delete a job after confirmation.
+        """
+        confirm = tk.messagebox.askyesno(
+            "Delete Job", f"Are you sure you want to delete '{job.title}'?"
+        )
+        if not confirm:
+            return
+
         try:
             res = requests.delete(
-                f"{BASE_API_URL}/job/{job.job_id}", cookies=self.cookies, verify=False
+                f"{BASE_API_URL}/job/{job.job_id}",
+                cookies=self.cookies,
+                verify=False,
             )
             if res.status_code == 204:
                 tk.messagebox.showinfo("Success", "Job deleted successfully.")
@@ -189,4 +235,7 @@ class JobsTab(tk.Frame):
             tk.messagebox.showerror("Error", str(e))
 
     def _on_mousewheel(self, event):
+        """
+        Enable mouse wheel scrolling
+        """
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")

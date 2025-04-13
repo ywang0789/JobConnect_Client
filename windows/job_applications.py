@@ -8,20 +8,36 @@ from objects import Account, Application, Job
 
 
 class JobApplicationsWindow(tk.Toplevel):
+    """
+    A window to view and manage applications for a specific job.
+    recruiters (can manage status) and applicants (can apply or withdraw).
+    """
+
     def __init__(self, master, cookies, user_account: Account, job: Job):
+        """
+        :param master: Parent window
+        :param cookies: Session cookies for authenticated API access
+        :param user_account: The current logged-in user
+        :param job: The job for which applications are shown
+        """
         super().__init__(master)
         self.cookies = cookies
         self.user_account = user_account
         self.job = job
 
-        self.title(f"Applications for: {job.title}")
+        self.title(f"Applications - {job.title}")
         self.geometry("700x550")
+        self.configure(bg="#f9f9f9")
 
-        tk.Label(self, text=f"Job: {job.title}", font=("Arial", 16, "bold")).pack(
-            pady=10
-        )
+        # Title header
+        tk.Label(
+            self,
+            text=f"Applications for: {job.title}",
+            font=("Arial", 16, "bold"),
+            bg="#f9f9f9",
+        ).pack(pady=(20, 10))
 
-        # Applicant: New Application Button
+        # "New Application" for applicants
         if self.user_account.role == "applicant":
             tk.Button(
                 self,
@@ -32,34 +48,35 @@ class JobApplicationsWindow(tk.Toplevel):
                 font=("Arial", 10, "bold"),
                 width=20,
                 height=1,
-            ).pack(pady=(0, 10))
+            ).pack(pady=(0, 15))
 
-        # Scrollable Frame
+        # Scrollable container
         container = tk.Frame(self)
         container.pack(fill="both", expand=True, padx=10, pady=5)
 
-        self.canvas = tk.Canvas(container)
+        self.canvas = tk.Canvas(container, highlightthickness=0, bg="#f9f9f9")
         self.scrollbar = tk.Scrollbar(
             container, orient="vertical", command=self.canvas.yview
         )
-        self.scrollable_frame = tk.Frame(self.canvas)
+        self.scrollable_frame = tk.Frame(self.canvas, bg="#f9f9f9")
 
         self.scrollable_frame.bind(
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
         )
-
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
-
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 
         self.refresh_applications()
 
     def refresh_applications(self):
+        """
+        Fetch and display applications for the current job.
+        """
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
@@ -72,9 +89,11 @@ class JobApplicationsWindow(tk.Toplevel):
             if res.status_code == 200:
                 applications = res.json()
                 if not applications:
-                    tk.Label(self.scrollable_frame, text="No applications found.").pack(
-                        pady=10
-                    )
+                    tk.Label(
+                        self.scrollable_frame,
+                        text="No applications found.",
+                        bg="#f9f9f9",
+                    ).pack(pady=10)
                     return
 
                 for app_data in applications:
@@ -87,6 +106,9 @@ class JobApplicationsWindow(tk.Toplevel):
             messagebox.showerror("Error", str(e))
 
     def render_application(self, data):
+        """
+        Render a single application in the scrollable frame with status and buttons.
+        """
         app = Application(
             application_id=data["application_id"],
             job_id=data["job_id"],
@@ -99,12 +121,13 @@ class JobApplicationsWindow(tk.Toplevel):
             self.scrollable_frame,
             relief="ridge",
             borderwidth=2,
-            padx=20,
-            pady=15,
-            bg="#f9f9f9",
+            padx=15,
+            pady=12,
+            bg="white",
         )
         frame.pack(fill="x", padx=15, pady=10)
 
+        # Application content
         tk.Label(
             frame,
             text=f"Content:\n{app.content}",
@@ -112,28 +135,44 @@ class JobApplicationsWindow(tk.Toplevel):
             justify="left",
             wraplength=550,
             font=("Arial", 11),
-            bg="#f9f9f9",
+            bg="white",
         ).pack(fill="x", pady=(0, 6))
+
+        # Status label with color
+        status_colors = {
+            "pending": "#f57c00",  # Orange
+            "accepted": "#2e7d32",  # Green
+            "rejected": "#c62828",  # Red
+        }
+        status_color = status_colors.get(app.status.lower(), "black")
 
         tk.Label(
             frame,
-            text=f"Status: {app.status}",
-            fg="blue",
-            font=("Arial", 10, "italic"),
-            bg="#f9f9f9",
+            text=f"Status: {app.status.capitalize()}",
+            fg=status_color,
+            font=("Arial", 10, "bold"),
+            bg="white",
         ).pack(anchor="w", pady=(0, 10))
 
-        # Recruiter controls
+        # Recruiter controls with color-coded buttons
         if self.user_account.role == "recruiter":
-            status_frame = tk.Frame(frame, bg="#f9f9f9")
+            status_frame = tk.Frame(frame, bg="white")
             status_frame.pack(anchor="w", pady=5)
-            for status in ["pending", "accepted", "rejected"]:
+
+            for status, color in {
+                "pending": "#f57c00",
+                "accepted": "#2e7d32",
+                "rejected": "#c62828",
+            }.items():
                 tk.Button(
                     status_frame,
                     text=f"Mark {status}",
                     command=lambda s=status, a=app: self.update_status(a, s),
                     width=12,
                     font=("Arial", 9),
+                    bg=color,
+                    fg="white",
+                    activebackground=color,
                 ).pack(side="left", padx=5)
 
         # Applicant controls
@@ -150,6 +189,9 @@ class JobApplicationsWindow(tk.Toplevel):
             ).pack(pady=(5, 0))
 
     def update_status(self, app: Application, new_status: str):
+        """
+        Recruiter can update the status of an application.
+        """
         try:
             res = requests.put(
                 f"{BASE_API_URL}/application/{app.application_id}",
@@ -171,6 +213,9 @@ class JobApplicationsWindow(tk.Toplevel):
             messagebox.showerror("Error", str(e))
 
     def withdraw_application(self, app: Application):
+        """
+        Applicants can delete their own applications.
+        """
         confirm = messagebox.askyesno(
             "Withdraw", "Are you sure you want to withdraw this application?"
         )
@@ -193,11 +238,15 @@ class JobApplicationsWindow(tk.Toplevel):
             messagebox.showerror("Error", str(e))
 
     def open_new_application_window(self):
+        """
+        Show a popup for applicants to submit a new application.
+        """
         window = tk.Toplevel(self)
         window.title("New Application")
         window.geometry("400x300")
+        window.configure(bg="#f9f9f9")
 
-        tk.Label(window, text="Application Content:").pack(pady=10)
+        tk.Label(window, text="Application Content:", bg="#f9f9f9").pack(pady=10)
         content_text = tk.Text(window, height=8, width=40)
         content_text.pack(pady=5)
 
@@ -223,7 +272,17 @@ class JobApplicationsWindow(tk.Toplevel):
             except Exception as e:
                 messagebox.showerror("Error", str(e))
 
-        tk.Button(window, text="Submit", command=submit_application).pack(pady=15)
+        tk.Button(
+            window,
+            text="Submit",
+            command=submit_application,
+            bg="#007acc",
+            fg="white",
+            width=15,
+        ).pack(pady=15)
 
     def _on_mousewheel(self, event):
+        """
+        Scroll the canvas using mouse wheel input.
+        """
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")

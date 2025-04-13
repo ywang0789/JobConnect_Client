@@ -10,29 +10,70 @@ from windows.register import RegisterWindow
 
 
 class LoginWindow(tk.Tk):
+    """
+    A window for users to log in to JobConnect
+    """
+
     def __init__(self):
+        """
+        Initialize the LoginWindow with input fields and control buttons.
+        """
         super().__init__()
         self.title("JobConnect - Login")
-        self.geometry("300x300")
+        self.geometry("360x500")
+        self.configure(bg="#f9f9f9")
 
-        tk.Label(self, text="Email").pack(pady=(20, 5))
-        self.email_entry = tk.Entry(self, width=30)
-        self.email_entry.pack()
+        tk.Label(
+            self, text="Login to JobConnect", font=("Arial", 16, "bold"), bg="#f9f9f9"
+        ).pack(pady=(30, 10))
 
-        tk.Label(self, text="Password").pack(pady=(20, 5))
-        self.password_entry = tk.Entry(self, show="*", width=30)
-        self.password_entry.pack()
+        form_frame = tk.Frame(self, bg="#f9f9f9")
+        form_frame.pack(pady=10)
 
-        tk.Button(self, text="Login", command=self.login).pack(pady=20)
-        tk.Button(self, text="Register", command=self.open_register_window).pack()
+        tk.Label(form_frame, text="Email", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.email_entry = tk.Entry(form_frame, width=35)
+        self.email_entry.pack(padx=20, pady=(0, 10))
 
-        # autofill for testing
-        tk.Button(self, text="Fill Recruiter", command=self.fill_recruiter).pack(pady=5)
-        tk.Button(self, text="Fill Applicant", command=self.fill_applicant).pack(pady=5)
+        tk.Label(form_frame, text="Password", anchor="w", bg="#f9f9f9").pack(
+            fill="x", padx=20
+        )
+        self.password_entry = tk.Entry(form_frame, show="*", width=35)
+        self.password_entry.pack(padx=20, pady=(0, 20))
+
+        action_frame = tk.Frame(self, bg="#f9f9f9")
+        action_frame.pack(pady=5)
+
+        tk.Button(
+            action_frame,
+            text="Login",
+            command=self.login,
+            width=15,
+            bg="#007acc",
+            fg="white",
+        ).pack(pady=5)
+        tk.Button(
+            action_frame, text="Register", command=self.open_register_window, width=15
+        ).pack(pady=5)
+
+        autofill_frame = tk.LabelFrame(
+            self, text="Testing Shortcuts", padx=10, pady=10, bg="#f9f9f9"
+        )
+        autofill_frame.pack(pady=20)
+
+        tk.Button(
+            autofill_frame, text="Fill Recruiter", command=self.fill_recruiter, width=20
+        ).pack(pady=5)
+        tk.Button(
+            autofill_frame, text="Fill Applicant", command=self.fill_applicant, width=20
+        ).pack()
 
     def login(self):
-        """uses entry fields to login to the API"""
-
+        """
+        Attempt to log in the user using the API with provided email and password.
+        On success, fetch user details and open the dashboard window.
+        """
         email = self.email_entry.get()
         password = self.password_entry.get()
 
@@ -43,12 +84,10 @@ class LoginWindow(tk.Tk):
                 verify=False,
             )
             if res.status_code == 200:
-                # get accouint info
                 me = requests.get(
                     f"{BASE_API_URL}/account/me", cookies=res.cookies, verify=False
                 )
                 if me.status_code == 200:
-                    # print(me.json())
                     user_account = Account(
                         me.json()["id"],
                         me.json()["first_name"],
@@ -57,7 +96,6 @@ class LoginWindow(tk.Tk):
                         me.json()["role"],
                     )
                     self.destroy()
-                    # open dashboard window
                     MainDashboardWindow(res.cookies, user_account).mainloop()
                 else:
                     messagebox.showerror("Error", "Failed to fetch user data.")
@@ -69,16 +107,25 @@ class LoginWindow(tk.Tk):
             messagebox.showerror("Connection Error", str(e))
 
     def open_register_window(self):
+        """
+        Open a separate window for user registration.
+        """
         RegisterWindow(self)
 
     def fill_recruiter(self):
-        self.password_entry.delete(0, tk.END)
-        self.password_entry.insert(0, "Recruiter123!")
+        """
+        Autofill recruiter credentials for testing purposes.
+        """
         self.email_entry.delete(0, tk.END)
         self.email_entry.insert(0, "recruiter@test.com")
+        self.password_entry.delete(0, tk.END)
+        self.password_entry.insert(0, "Recruiter123!")
 
     def fill_applicant(self):
+        """
+        Autofill applicant credentials for testing purposes.
+        """
+        self.email_entry.delete(0, tk.END)
+        self.email_entry.insert(0, "applicant@test.com")
         self.password_entry.delete(0, tk.END)
         self.password_entry.insert(0, "Applicant123!")
-        self.email_entry.delete(0, tk.END)
-        self.email_entry.insert(0, "Applicant@test.com")
